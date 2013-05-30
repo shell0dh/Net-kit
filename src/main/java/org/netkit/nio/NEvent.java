@@ -1,24 +1,24 @@
 package org.netkit.nio;
 
 /**
-  * Date: 13-5-30
- * Time: 下午4:07
-  */
+ * User: shell0dh
+ * Date: 13-5-30
+ * Time: 下午11:18
+ */
 public class NEvent {
-
-    public enum NEventType{
-        READABLE,
-        WRITEABLE,
-        ACCEPT;
-    }
-
+    private int ops;
     private NConnection connection;
 
-    public NConnection getConnection() {
-        return connection;
+    public NEvent(int o,NConnection conn){
+        this.ops = o;
+        this.connection = conn;
     }
 
-    public void setConnection(NConnection connection) {
-        this.connection = connection;
+    public NConnection getConnection(){
+        return  connection;
+    }
+
+    public int eventOps(){
+        return ops;
     }
 }

@@ -10,9 +10,9 @@ public class NioTcpServer {
 
     private int currentLoop = -1;
 
-    private TcpConnectionSupport support;
+    private NConnectionSupport support;
 
-    public NioTcpServer(int threads,TcpConnectionSupport connectionSupport,int port){
+    public NioTcpServer(int threads,NConnectionSupport connectionSupport,int port){
         this.support = connectionSupport;
         for(int i = 0 ; i < threads ; i++){
             eventLoops[i] = new IoEventLoop(connectionSupport);

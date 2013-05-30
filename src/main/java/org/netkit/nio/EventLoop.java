@@ -1,5 +1,6 @@
 package org.netkit.nio;
 
+
 /**
  * User: shell0dh
  * Date: 13-5-21
@@ -10,5 +11,4 @@ public interface EventLoop{
     public void startEventLoop();
     public void registerEvent(NEvent e);
     public void stopEventLoop();
-    public TcpConnectionSupport getConnectionSupport();
 }

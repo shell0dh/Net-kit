@@ -23,7 +23,7 @@ public class AcceptEventLoop extends AbstractEventLoop {
 
     private int currentLoop = -1;
 
-    public AcceptEventLoop(int port,TcpConnectionSupport support,IoEventLoop[] loops){
+    public AcceptEventLoop(int port,NConnectionSupport support,IoEventLoop[] loops){
         super(support);
         this.eventLoops = loops;
     }
@@ -45,10 +45,15 @@ public class AcceptEventLoop extends AbstractEventLoop {
             Socket ssocket = ((ServerSocketChannel) acceptkey.channel()).accept().socket();
             SocketChannel socketChannel = ssocket.getChannel();
             IoEventLoop e = eventLoops[process];
-            //todo;;regitster event Accept
+            NEvent event = new NEvent(SelectionKey.OP_READ,createConnection(socketChannel));
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+
+    public NConnection createConnection(SocketChannel socketChannel){
+        return new NConnection(socketChannel);
     }
 
     @Override

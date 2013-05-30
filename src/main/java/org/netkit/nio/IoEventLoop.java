@@ -1,9 +1,11 @@
 package org.netkit.nio;
 
+
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
+import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -19,9 +21,9 @@ public class IoEventLoop extends AbstractEventLoop {
 
     private Selector selector;
 
-    private TcpConnectionSupport connectionSupport;
+    private NConnectionSupport connectionSupport;
 
-    public IoEventLoop(TcpConnectionSupport support){
+    public IoEventLoop(NConnectionSupport support){
         super(support);
     }
 
@@ -30,11 +32,15 @@ public class IoEventLoop extends AbstractEventLoop {
     }
 
 
+    @Override
+    public void registerEvent(NEvent e) {
+        eventQ.add(e);
+    }
+
     public void run() {
         while (runing()) {
             final Selector sel = this.selector;
             try{
-                processEvent(sel);
                 int ready = sel.select(500);
                 if (ready <= 0) continue;
                 Iterator<SelectionKey> selkeys = sel.selectedKeys().iterator();
@@ -48,6 +54,7 @@ public class IoEventLoop extends AbstractEventLoop {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+                processEvent(sel);
             }catch (ClosedChannelException e){
                 e.printStackTrace();
             }catch (IOException e){
@@ -62,6 +69,7 @@ public class IoEventLoop extends AbstractEventLoop {
             close(key);
         }
         if(key.isReadable()){
+
         }
         if(key.isWritable()){
 
@@ -71,8 +79,11 @@ public class IoEventLoop extends AbstractEventLoop {
 
 
     private void processEvent(final Selector selector) throws ClosedChannelException {
-        while (eventQ.size() > 0) {
-            NEvent socketChannel = eventQ.poll();
+        while (!eventQ.isEmpty()) {
+            NEvent e = eventQ.poll();
+            SocketChannel channel = e.getConnection().channel();
+            SelectionKey selKey = channel.register(selector,e.eventOps());
+            selKey.attach(e.getConnection());
         }
     }
 }
