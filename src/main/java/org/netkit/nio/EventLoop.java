@@ -10,5 +10,5 @@ public interface EventLoop{
     public void startEventLoop();
     public void registerEvent(NEvent e);
     public void stopEventLoop();
-    public EventLoopListener getEventLoopListener();
+    public TcpConnectionSupport getConnectionSupport();
 }

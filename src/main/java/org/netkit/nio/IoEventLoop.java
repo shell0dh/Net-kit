@@ -19,10 +19,10 @@ public class IoEventLoop extends AbstractEventLoop {
 
     private Selector selector;
 
-    private EventLoopListener listener;
+    private TcpConnectionSupport connectionSupport;
 
-    public IoEventLoop(EventLoopListener listener){
-        super(listener);
+    public IoEventLoop(TcpConnectionSupport support){
+        super(support);
     }
 
     public void init()throws Exception{

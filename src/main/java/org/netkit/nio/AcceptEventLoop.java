@@ -19,13 +19,12 @@ public class AcceptEventLoop extends AbstractEventLoop {
 
     private Selector selector;
     private IoEventLoop[] eventLoops;
-    private EventLoopListener listener;
     private int port;
 
     private int currentLoop = -1;
 
-    public AcceptEventLoop(int port,EventLoopListener listener,IoEventLoop[] loops){
-        super(listener);
+    public AcceptEventLoop(int port,TcpConnectionSupport support,IoEventLoop[] loops){
+        super(support);
         this.eventLoops = loops;
     }
 

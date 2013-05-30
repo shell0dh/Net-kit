@@ -14,10 +14,10 @@ public class AbstractEventLoop extends Thread implements EventLoop {
 
     private AtomicBoolean runing = new AtomicBoolean(false);
 
-    private EventLoopListener listener;
+    private TcpConnectionSupport support;
 
-    public AbstractEventLoop(EventLoopListener listener){
-        this.listener = listener;
+    public AbstractEventLoop(TcpConnectionSupport tcpConnectionSupport){
+        this.support = tcpConnectionSupport;
     }
 
     public SocketChannel channelFor(SelectionKey key){
@@ -67,7 +67,7 @@ public class AbstractEventLoop extends Thread implements EventLoop {
     }
 
     @Override
-    public EventLoopListener getEventLoopListener() {
-        return listener;
+    public TcpConnectionSupport getConnectionSupport() {
+        return support;
     }
 }

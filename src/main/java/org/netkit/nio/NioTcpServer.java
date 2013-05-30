@@ -10,14 +10,14 @@ public class NioTcpServer {
 
     private int currentLoop = -1;
 
-    private EventLoopListener listener;
+    private TcpConnectionSupport support;
 
-    public NioTcpServer(int threads,EventLoopListener listener,int port){
-        this.listener = listener;
+    public NioTcpServer(int threads,TcpConnectionSupport connectionSupport,int port){
+        this.support = connectionSupport;
         for(int i = 0 ; i < threads ; i++){
-            eventLoops[i] = new IoEventLoop(listener);
+            eventLoops[i] = new IoEventLoop(connectionSupport);
         }
-        acceptEventLoop = new AcceptEventLoop(port,listener,eventLoops);
+        acceptEventLoop = new AcceptEventLoop(port,connectionSupport,eventLoops);
     }
 
     public void start(){
