@@ -68,22 +68,17 @@ public class IoEventLoop extends AbstractEventLoop {
         if(!key.isValid()){
             close(key);
         }
-        if(key.isReadable()){
-
-        }
-        if(key.isWritable()){
-
-        }
+        NConnection connection = (NConnection)key.attachment();
+        connection.ioNotify(key.isReadable(),key.isWritable(),this);
     }
-
 
 
     private void processEvent(final Selector selector) throws ClosedChannelException {
         while (!eventQ.isEmpty()) {
             NEvent e = eventQ.poll();
             SocketChannel channel = e.getConnection().channel();
-            SelectionKey selKey = channel.register(selector,e.eventOps());
-            selKey.attach(e.getConnection());
+            SelectionKey selectionKey = channel.register(selector,e.eventOps(),e.getConnection());
+            e.getConnection().setSelectionKey(selectionKey);
         }
     }
 }

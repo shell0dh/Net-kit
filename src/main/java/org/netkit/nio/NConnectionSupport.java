@@ -10,8 +10,6 @@ import java.util.concurrent.atomic.AtomicInteger;
   */
 public class NConnectionSupport {
 
-    private HandlerAdapter handlerAdapter;
-
     private IoHandler[] ioHandlers;
 
     private Map<Integer,NConnection> connectionMap = new ConcurrentHashMap<Integer, NConnection>();
@@ -29,10 +27,6 @@ public class NConnectionSupport {
     public void registerConnection(NConnection connection){
         Integer id = next_Id.incrementAndGet();
         connectionMap.put(id,connection);
-    }
-
-    public HandlerAdapter handlerAdapter(){
-        return handlerAdapter;
     }
 
 }

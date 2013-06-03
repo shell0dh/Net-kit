@@ -45,15 +45,15 @@ public class AcceptEventLoop extends AbstractEventLoop {
             Socket ssocket = ((ServerSocketChannel) acceptkey.channel()).accept().socket();
             SocketChannel socketChannel = ssocket.getChannel();
             IoEventLoop e = eventLoops[process];
-            NEvent event = new NEvent(SelectionKey.OP_READ,createConnection(socketChannel));
+            NEvent event = new NEvent(SelectionKey.OP_READ,createConnection(socketChannel,e));
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
 
-    public NConnection createConnection(SocketChannel socketChannel){
-        return new NConnection(socketChannel);
+    public NConnection createConnection(SocketChannel socketChannel,IoEventLoop e){
+        return new NConnection(socketChannel,e);
     }
 
     @Override
