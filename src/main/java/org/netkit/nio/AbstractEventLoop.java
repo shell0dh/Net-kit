@@ -17,6 +17,7 @@ public class AbstractEventLoop extends Thread implements EventLoop {
     private NConnectionSupport support;
 
     public AbstractEventLoop(NConnectionSupport nConnectionSupport){
+        setDaemon(false);
         this.support = nConnectionSupport;
     }
 
@@ -50,11 +51,12 @@ public class AbstractEventLoop extends Thread implements EventLoop {
 
 
     @Override
-    public void initEvenLoop()throws Exception{
+    public void initEventLoop()throws Exception{
     }
 
     @Override
     public void startEventLoop() {
+        runing.set(true);
         start();
     }
 

@@ -7,7 +7,7 @@ package org.netkit.nio;
  * Time: 下午9:57
   */
 public interface EventLoop{
-    public void initEvenLoop()throws Exception;
+    public void initEventLoop()throws Exception;
     public void startEventLoop();
     public void registerEvent(NEvent e);
     public void stopEventLoop();

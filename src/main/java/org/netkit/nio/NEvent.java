@@ -7,14 +7,14 @@ package org.netkit.nio;
  */
 public class NEvent {
     private int ops;
-    private NConnection connection;
+    private NServerConnection connection;
 
-    public NEvent(int o,NConnection conn){
+    public NEvent(int o,NServerConnection conn){
         this.ops = o;
         this.connection = conn;
     }
 
-    public NConnection getConnection(){
+    public NServerConnection getConnection(){
         return  connection;
     }
 

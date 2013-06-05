@@ -27,7 +27,7 @@ public class IoEventLoop extends AbstractEventLoop {
         super(support);
     }
 
-    public void init()throws Exception{
+    public void initEventLoop()throws Exception{
         this.selector = Selector.open();
     }
 
@@ -38,8 +38,8 @@ public class IoEventLoop extends AbstractEventLoop {
     }
 
     public void run() {
+        final Selector sel = this.selector;
         while (runing()) {
-            final Selector sel = this.selector;
             try{
                 int ready = sel.select(500);
                 if (ready <= 0) continue;
@@ -68,7 +68,7 @@ public class IoEventLoop extends AbstractEventLoop {
         if(!key.isValid()){
             close(key);
         }
-        NConnection connection = (NConnection)key.attachment();
+        NServerConnection connection = (NServerConnection)key.attachment();
         connection.ioNotify(key.isReadable(),key.isWritable(),this);
     }
 

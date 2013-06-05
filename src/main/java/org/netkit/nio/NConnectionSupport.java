@@ -12,7 +12,7 @@ public class NConnectionSupport {
 
     private IoHandler[] ioHandlers;
 
-    private Map<Integer,NConnection> connectionMap = new ConcurrentHashMap<Integer, NConnection>();
+    private Map<Integer,NServerConnection> connectionMap = new ConcurrentHashMap<Integer, NServerConnection>();
 
     private AtomicInteger next_Id = new AtomicInteger(0);
 
@@ -24,7 +24,7 @@ public class NConnectionSupport {
         this.ioHandlers = handlers;
     }
 
-    public void registerConnection(NConnection connection){
+    public void registerConnection(NServerConnection connection){
         Integer id = next_Id.incrementAndGet();
         connectionMap.put(id,connection);
     }

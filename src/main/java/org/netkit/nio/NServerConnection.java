@@ -5,12 +5,14 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.util.LinkedList;
+import java.util.Queue;
 
 /**
    * Date: 13-5-30
  * Time: 下午4:12
   */
-public class NConnection implements IoEventListener{
+public class NServerConnection implements IoEventListener{
 
     private SocketChannel socketChannel;
 
@@ -20,7 +22,9 @@ public class NConnection implements IoEventListener{
 
     private NConnectionSupport connectionSupport;
 
-    public NConnection(SocketChannel s,IoEventLoop e,NConnectionSupport support){
+    private Queue<ByteBuffer> writeQueue = new LinkedList<ByteBuffer>();
+
+    public NServerConnection(SocketChannel s, IoEventLoop e, NConnectionSupport support){
         this.eventLoop = e;
         this.socketChannel = s;
         this.connectionSupport = support;
@@ -35,7 +39,9 @@ public class NConnection implements IoEventListener{
     }
 
     public void processWrite(){
+        while(!writeQueue.isEmpty()){
 
+        }
     }
 
     public void processClose(){
@@ -47,12 +53,11 @@ public class NConnection implements IoEventListener{
     }
 
     public void onException(Exception e){
-        if(e != null){
-        }
+        e.printStackTrace();
     }
 
     public void messageReceived(ByteBuffer readbuffer){
-        
+        System.out.println(readbuffer.position());
     }
 
     public void processRead(){
