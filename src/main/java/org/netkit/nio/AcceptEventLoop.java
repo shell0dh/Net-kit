@@ -65,7 +65,6 @@ public class AcceptEventLoop extends AbstractEventLoop {
         while (runing()) {
             try {
                 nKeys = sel.select(500);
-                System.out.println("nkeys = "+nKeys);
                 if (nKeys > 0) {
                     Set selectedKeys = sel.selectedKeys();
                     Iterator<SelectionKey> selKeys = selectedKeys.iterator();

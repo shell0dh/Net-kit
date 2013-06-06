@@ -37,10 +37,19 @@ public class IoEventLoop extends AbstractEventLoop {
         eventQ.add(e);
     }
 
+    @Override
+    public void unregister(SocketChannel socketChannel) {
+        final Selector sel = this.selector;
+        SelectionKey key = socketChannel.keyFor(sel);
+        close(key);
+    }
+
     public void run() {
         final Selector sel = this.selector;
+        System.out.println("runing.ioEventLoop");
         while (runing()) {
             try{
+                processEvent(sel);
                 int ready = sel.select(500);
                 if (ready <= 0) continue;
                 Iterator<SelectionKey> selkeys = sel.selectedKeys().iterator();
@@ -54,7 +63,6 @@ public class IoEventLoop extends AbstractEventLoop {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                processEvent(sel);
             }catch (ClosedChannelException e){
                 e.printStackTrace();
             }catch (IOException e){
@@ -66,6 +74,7 @@ public class IoEventLoop extends AbstractEventLoop {
 
     private void handlerEvent(SelectionKey key){
         if(!key.isValid()){
+            SocketChannel s = channelFor(key);
             close(key);
         }
         NServerConnection connection = (NServerConnection)key.attachment();
@@ -77,6 +86,7 @@ public class IoEventLoop extends AbstractEventLoop {
         while (!eventQ.isEmpty()) {
             NEvent e = eventQ.poll();
             SocketChannel channel = e.getConnection().channel();
+            System.out.println("Nevent ="+e.eventOps()+" conn = "+e.getConnection());
             SelectionKey selectionKey = channel.register(selector,e.eventOps(),e.getConnection());
             e.getConnection().setSelectionKey(selectionKey);
         }

@@ -1,7 +1,10 @@
 
-import java.net.InetAddress;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
-import java.net.SocketAddress;
+
 
 
 /**
@@ -10,8 +13,15 @@ import java.net.SocketAddress;
   */
 public class TestConnection {
     public static void main(String[] strings)throws Exception{
-        Socket socket = new Socket();
-        socket.connect(InetAddress.getLocalHost(),12345);
-        SocketAddress address
+        Socket socket = new Socket("localhost",12345);
+        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        PrintWriter out = new PrintWriter(socket.getOutputStream());
+        out.println("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz");
+        out.flush();
+        System.out.println("readline start");
+        System.out.println(in.readLine());
+        System.out.println("readline end");
+        Thread.sleep(100000);
+        socket.close();
     }
 }

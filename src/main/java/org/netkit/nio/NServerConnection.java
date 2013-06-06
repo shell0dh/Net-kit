@@ -28,6 +28,11 @@ public class NServerConnection implements IoEventListener{
         this.eventLoop = e;
         this.socketChannel = s;
         this.connectionSupport = support;
+        try {
+            this.socketChannel.configureBlocking(false);
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
     }
 
     public void setSelectionKey(SelectionKey key){
@@ -38,18 +43,24 @@ public class NServerConnection implements IoEventListener{
         return socketChannel;
     }
 
+    public void processDirectWrite(ByteBuffer writeBuffer){
+        System.out.println("processDirectWrite..");
+        try {
+            socketChannel.write(writeBuffer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("proessDirectWrite..end");
+    }
+
     public void processWrite(){
         while(!writeQueue.isEmpty()){
 
         }
     }
 
-    public void processClose(){
-        try {
-            socketChannel.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void close(){
+       eventLoop.unregister(socketChannel);
     }
 
     public void onException(Exception e){
@@ -57,7 +68,8 @@ public class NServerConnection implements IoEventListener{
     }
 
     public void messageReceived(ByteBuffer readbuffer){
-        System.out.println(readbuffer.position());
+        System.out.println(new String(readbuffer.array()));
+        processDirectWrite(readbuffer);
     }
 
     public void processRead(){
@@ -65,12 +77,13 @@ public class NServerConnection implements IoEventListener{
             ByteBuffer tbuf = ByteBuffer.allocate(1024);
             int readByteCount = socketChannel.read(tbuf);
             if(readByteCount < 0){
-                processClose();
+               // processClose();
             }else if(readByteCount > 0){
                 messageReceived(tbuf);
             }
         } catch (IOException e) {
             e.printStackTrace();
+            close();
         }
     }
 

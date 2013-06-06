@@ -64,6 +64,11 @@ public class AbstractEventLoop extends Thread implements EventLoop {
     public void registerEvent(NEvent e) {
     }
 
+    @Override
+    public void unregister(SocketChannel socketChannel) {
+
+    }
+
     public void stopEventLoop(){
         runing.getAndSet(false);
     }

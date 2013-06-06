@@ -64,7 +64,7 @@ public class NioTcpServer {
             }
         };
         serverThread.start();
-        Thread.sleep(40000);
+        Thread.sleep(100000);
         server.stopEventLoop();
     }
 }
