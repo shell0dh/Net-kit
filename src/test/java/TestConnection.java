@@ -21,7 +21,6 @@ public class TestConnection {
         System.out.println("readline start");
         System.out.println(in.readLine());
         System.out.println("readline end");
-        Thread.sleep(100000);
         socket.close();
     }
 }

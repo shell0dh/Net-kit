@@ -46,6 +46,7 @@ public class NServerConnection implements IoEventListener{
     public void processDirectWrite(ByteBuffer writeBuffer){
         System.out.println("processDirectWrite..");
         try {
+            writeBuffer.flip();
             socketChannel.write(writeBuffer);
         } catch (IOException e) {
             e.printStackTrace();
