@@ -8,10 +8,10 @@ import java.nio.channels.SocketChannel;
  * Date: 13-5-21
  * Time: 下午9:57
   */
-public interface EventLoop{
+public interface EventLoop<E>{
     public void initEventLoop()throws Exception;
     public void startEventLoop();
-    public void registerEvent(NEvent e);
+    public void registerEvent(NEvent<E> e);
     public void unregister(SocketChannel socketChannel);
     public void stopEventLoop();
 }

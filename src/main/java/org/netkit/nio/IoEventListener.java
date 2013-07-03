@@ -6,5 +6,5 @@ package org.netkit.nio;
  * Time: 上午12:56
   */
 public interface IoEventListener {
-    void ioNotify(boolean read,boolean write,IoEventLoop e)throws Exception;
+    void ioNotify(boolean read,boolean write,boolean accept,boolean connect,IoEventLoop e)throws Exception;
 }

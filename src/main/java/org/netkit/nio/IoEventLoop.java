@@ -84,11 +84,10 @@ public class IoEventLoop extends AbstractEventLoop {
 
     private void processEvent(final Selector selector) throws ClosedChannelException {
         while (!eventQ.isEmpty()) {
-            NEvent e = eventQ.poll();
-            SocketChannel channel = e.getConnection().channel();
-            System.out.println("Nevent ="+e.eventOps()+" conn = "+e.getConnection());
-            SelectionKey selectionKey = channel.register(selector,e.eventOps(),e.getConnection());
-            e.getConnection().setSelectionKey(selectionKey);
+            NEvent<NServerConnection> e = eventQ.poll();
+            SocketChannel channel = e.getAttachment().channel();
+            SelectionKey selectionKey = channel.register(selector,e.eventOps(),e.getAttachment());
+            e.getAttachment().setSelectionKey(selectionKey);
         }
     }
 }

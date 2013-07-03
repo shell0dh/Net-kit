@@ -3,16 +3,21 @@ package org.netkit.nio;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.channels.SelectionKey;
+import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * User: yfliuyu
  * Date: 13-5-24
  */
-public class AbstractEventLoop extends Thread implements EventLoop {
+public class AbstractEventLoop<T> extends Thread implements EventLoop<T> {
 
     private AtomicBoolean runing = new AtomicBoolean(false);
+
+    private Queue<NEvent> eventQ = new LinkedBlockingQueue<NEvent>();
 
     private NConnectionSupport support;
 
@@ -61,7 +66,8 @@ public class AbstractEventLoop extends Thread implements EventLoop {
     }
 
     @Override
-    public void registerEvent(NEvent e) {
+    public void registerEvent(NEvent<T> e) {
+
     }
 
     @Override

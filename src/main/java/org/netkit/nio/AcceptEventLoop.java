@@ -1,8 +1,7 @@
 package org.netkit.nio;
 
-import java.net.InetAddress;
+
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.net.SocketAddress;
 import java.nio.channels.*;
 import java.util.Iterator;
@@ -13,48 +12,30 @@ import java.util.Set;
  * Date: 13-5-21
  * Time: 下午4:40
  */
-public class AcceptEventLoop extends AbstractEventLoop {
+public class AcceptEventLoop extends AbstractEventLoop<ServerSocketChannel> {
 
     private Selector selector;
-    private IoEventLoop[] eventLoops;
+    private IoEventListener ioAcceptListener;
     private ServerSocketChannel serverSocketChannel;
     private int port;
 
     private int currentLoop = -1;
 
-    public AcceptEventLoop(int p,NConnectionSupport support,IoEventLoop[] loops){
+    public AcceptEventLoop(int p,NConnectionSupport support){
         super(support);
         this.port = p;
-        this.eventLoops = loops;
     }
 
     public void initEventLoop()throws Exception{
         this.selector = Selector.open();
         serverSocketChannel = ServerSocketChannel.open();
-        SocketAddress address = new InetSocketAddress(port);
-        System.out.println("bind");
-        serverSocketChannel.socket().bind(address);
-        serverSocketChannel.configureBlocking(false);
-        serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-        System.out.println("initEventLoop end");
     }
 
+    @Override
+    public void registerEvent(NEvent<ServerSocketChannel> e) {
 
-    private void accept(int process) {
-        final Selector sel = this.selector;
-        try {
-            IoEventLoop e = eventLoops[process];
-            NEvent event = new NEvent(SelectionKey.OP_READ,createConnection(serverSocketChannel.accept(),e));
-            e.registerEvent(event);
-        } catch (Exception e1) {
-            e1.printStackTrace();
-        }
     }
 
-
-    public NServerConnection createConnection(SocketChannel socketChannel,IoEventLoop e){
-        return new NServerConnection(socketChannel,e,getConnectionSupport());
-    }
 
     @Override
     public void run() {
@@ -72,8 +53,7 @@ public class AcceptEventLoop extends AbstractEventLoop {
                         selkey = selKeys.next();
                         selKeys.remove();
                         if (selkey.isAcceptable()) {
-                            currentLoop = (currentLoop+1)% eventLoops.length;
-                            accept(currentLoop);
+                            ioAcceptListener.ioNotify(false,false,true,false,null);
                         }
                     }
                 }

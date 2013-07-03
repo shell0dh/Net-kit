@@ -5,17 +5,18 @@ package org.netkit.nio;
  * Date: 13-5-30
  * Time: 下午11:18
  */
-public class NEvent {
+public class NEvent<T>{
     private int ops;
     private NServerConnection connection;
+    private T attachment;
 
-    public NEvent(int o,NServerConnection conn){
+    public NEvent(int o,T a){
         this.ops = o;
-        this.connection = conn;
+        this.attachment = a;
     }
 
-    public NServerConnection getConnection(){
-        return  connection;
+    public T getAttachment(){
+        return  attachment;
     }
 
     public int eventOps(){
