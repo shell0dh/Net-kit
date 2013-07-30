@@ -12,7 +12,7 @@ import java.util.Queue;
    * Date: 13-5-30
  * Time: 下午4:12
   */
-public class NServerConnection implements IoEventListener{
+public class IoConnection implements IoEventListener{
 
     private SocketChannel socketChannel;
 
@@ -20,11 +20,11 @@ public class NServerConnection implements IoEventListener{
 
     private SelectionKey selkey;
 
-    private NConnectionSupport connectionSupport;
+    private IoSupport connectionSupport;
 
     private Queue<ByteBuffer> writeQueue = new LinkedList<ByteBuffer>();
 
-    public NServerConnection(SocketChannel s, IoEventLoop e, NConnectionSupport support){
+    public NServerConnection(SocketChannel s, IoEventLoop e, IoSupport support){
         this.eventLoop = e;
         this.socketChannel = s;
         this.connectionSupport = support;
@@ -89,7 +89,7 @@ public class NServerConnection implements IoEventListener{
     }
 
     @Override
-    public void ioNotify(boolean isReadable,boolean isWriteable,IoEventLoop e){
+    public void ioNotify(boolean isReadable, boolean isWriteable, boolean accept, boolean connect, IoEventLoop e) throws Exception {
         if(isReadable){
             processRead();
         }
@@ -97,4 +97,5 @@ public class NServerConnection implements IoEventListener{
             processWrite();
         }
     }
+
 }

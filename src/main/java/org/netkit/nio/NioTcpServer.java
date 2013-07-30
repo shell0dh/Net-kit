@@ -1,5 +1,8 @@
 package org.netkit.nio;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.channels.SelectionKey;
@@ -11,17 +14,20 @@ import java.util.concurrent.CountDownLatch;
  * Date: 13-5-25
  * Time: 下午2:13
  */
-public class NioTcpServer implements IoEventListener{
+public class NioTcpServer implements NioEventListener{
+
+    private static final Logger LOG = LoggerFactory.getLogger(NioTcpServer.class);
+
     private IoEventLoop[] eventLoops;
     private AcceptEventLoop acceptEventLoop;
     private ServerSocketChannel serverSocketChannel;
     private int currentLoop = -1;
 
-    private NConnectionSupport support;
+    private IoSupport support;
 
     private CountDownLatch serverAwait = new CountDownLatch(1);
 
-    public NioTcpServer(int threads,NConnectionSupport connectionSupport){
+    public NioTcpServer(int threads,IoSupport connectionSupport){
         this.support = connectionSupport;
         this.eventLoops = new IoEventLoop[threads];
         for(int i = 0 ; i < threads ; i++){
@@ -67,7 +73,6 @@ public class NioTcpServer implements IoEventListener{
 
     private void accept(){
         currentLoop = (currentLoop+1)% eventLoops.length;
-
         IoEventLoop e = eventLoops[process];
         NEvent event = new NEvent(SelectionKey.OP_READ,createConnection(serverSocketChannel.accept(),e));
         e.registerEvent(event);
@@ -86,7 +91,7 @@ public class NioTcpServer implements IoEventListener{
     }
 
     public static void main(String[] string)throws Exception{
-        NConnectionSupport support = new NConnectionSupport();
+        IoSupport support = new IoSupport();
         int threads = Runtime.getRuntime().availableProcessors();
         final NioTcpServer server = new NioTcpServer(threads,support,12345);
         Thread serverThread = new Thread(){

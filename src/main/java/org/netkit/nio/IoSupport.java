@@ -8,15 +8,15 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Date: 13-5-30
  * Time: 下午3:59
   */
-public class NConnectionSupport {
+public class IoSupport {
 
     private IoHandler[] ioHandlers;
 
-    private Map<Integer,NServerConnection> connectionMap = new ConcurrentHashMap<Integer, NServerConnection>();
+    private Map<Integer,IoConnection> connectionMap = new ConcurrentHashMap<Integer, NServerConnection>();
 
     private AtomicInteger next_Id = new AtomicInteger(0);
 
-    public NConnectionSupport(){
+    public IoSupport(){
 
     }
 
