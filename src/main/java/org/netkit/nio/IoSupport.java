@@ -2,6 +2,7 @@ package org.netkit.nio;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -10,22 +11,40 @@ import java.util.concurrent.atomic.AtomicInteger;
   */
 public class IoSupport {
 
-    private IoHandler[] ioHandlers;
+    private IoFilter[] filters;
+
+    private IoHandler ioHandler;
+
+    private Executor executor;
 
     private Map<Integer,IoConnection> connectionMap = new ConcurrentHashMap<Integer, IoConnection>();
 
     private AtomicInteger next_Id = new AtomicInteger(0);
 
-    public IoSupport(){
+    public Executor getExecutor(){
+        return executor;
     }
 
-    public void setFilter(IoHandler ... handlers){
-        this.ioHandlers = handlers;
+    public IoSupport(IoHandler handler,Executor e){
+        this.executor = e;
+        this.ioHandler = handler;
+    }
+
+    public void setFilter(IoFilter ... s){
+        this.filters = s;
     }
 
     public void registerConnection(IoConnection connection){
         Integer id = next_Id.incrementAndGet();
         connectionMap.put(id,connection);
+    }
+
+    public IoHandler getHandler(){
+        return ioHandler;
+    }
+
+    public IoFilter[] getIoFilters(){
+        return filters;
     }
 
 }

@@ -5,9 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.channels.ClosedChannelException;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
+import java.nio.ByteBuffer;
+import java.nio.channels.*;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -24,6 +23,8 @@ public class NioEventLoop {
     private Queue<IoEvent> queue = new ConcurrentLinkedQueue<IoEvent>();
 
     private Selector selector;
+
+    private ByteBuffer bufferCache = ByteBuffer.allocate(64 * 1024);
 
     private IoWorker worker;
 
@@ -96,7 +97,7 @@ public class NioEventLoop {
 
 
     public void processEvent(Selector sel) throws ClosedChannelException {
-        while (queue.peek() != null) {
+        while (!queue.isEmpty()) {
             IoEvent e = queue.poll();
             e.ch().register(sel, e.Ops(), e.getListener());
             if(e.cb() != null){
@@ -105,12 +106,18 @@ public class NioEventLoop {
         }
     }
 
-    public void registerEvent(IoEvent e) {
+
+
+    public void register(IoEvent e) {
         queue.add(e);
         wakeup();
     }
 
-    public void unregister(SelectionKey key){
+    public void unregister(final NioEventListener listener,final SelectableChannel ch){
+        System.out.println("listener unregister :"+listener);
+        final SelectionKey key = ch.keyFor(selector);
+        key.cancel();
+        key.attach(null);
     }
 
 

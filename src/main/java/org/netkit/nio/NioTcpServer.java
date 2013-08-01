@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
@@ -25,12 +26,9 @@ public class NioTcpServer implements NioEventListener{
 
     private IoSupport support;
 
-    private int port;
-
     private CountDownLatch serverAwait = new CountDownLatch(1);
 
-    public NioTcpServer(int threads,IoSupport s,int p){
-        this.port = p;
+    public NioTcpServer(IoSupport s){
         this.support = s;
         this.acceptEventLoop = new NioEventLoop("AcceptEventLoop",0);
         this.selectPool = new NioSelectPool("IoEventLoop");
@@ -55,30 +53,33 @@ public class NioTcpServer implements NioEventListener{
         SocketAddress address = new InetSocketAddress(port);
         serverSocketChannel.socket().bind(address);
         serverSocketChannel.configureBlocking(false);
-        acceptEventLoop.registerEvent(new IoEvent(SelectionKey.OP_ACCEPT,this,serverSocketChannel,null));
+        acceptEventLoop.register(new IoEvent(SelectionKey.OP_ACCEPT, this, serverSocketChannel, null));
     }
 
     private void accept()throws IOException{
         SocketChannel socketChannel = serverSocketChannel.accept();
-        IoEvent event = new IoEvent(SelectionKey.OP_READ,buildIoConnection(socketChannel),socketChannel,null);
-        selectPool.getNextLoop().registerEvent(event);
+        NioEventLoop eventLoop = selectPool.getNextLoop();
+        IoEvent event = new IoEvent(SelectionKey.OP_READ,buildIoConnection(socketChannel,eventLoop),socketChannel,null);
+        eventLoop.register(event);
     }
 
-    private IoConnection buildIoConnection(SocketChannel socketChannel){
-        return new IoConnection(socketChannel,support);
+    private IoConnection buildIoConnection(SocketChannel socketChannel,NioEventLoop e)throws IOException{
+        return new IoConnection(socketChannel,support,e);
     }
 
     @Override
-    public void ioReady(boolean igRead, boolean igWrite, boolean isAccept, boolean igConnect) throws IOException {
+    public void ioReady(boolean igRead, boolean igWrite, boolean isAccept, boolean igConnect,ByteBuffer ig) throws IOException {
         if(isAccept){
             accept();
         }
     }
 
     public static void main(String[] string)throws Exception{
+        LOG.info("Test runing.");
         IoSupport support = new IoSupport();
-        int threads = Runtime.getRuntime().availableProcessors();
-        final NioTcpServer server = new NioTcpServer(threads,support,12345);
+        final NioTcpServer server = new NioTcpServer(support);
+        server.bind(12345);
+        System.out.println("server..start");
         new Thread(){
             @Override
             public void run() {
