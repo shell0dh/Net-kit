@@ -12,19 +12,18 @@ public class IoSupport {
 
     private IoHandler[] ioHandlers;
 
-    private Map<Integer,IoConnection> connectionMap = new ConcurrentHashMap<Integer, NServerConnection>();
+    private Map<Integer,IoConnection> connectionMap = new ConcurrentHashMap<Integer, IoConnection>();
 
     private AtomicInteger next_Id = new AtomicInteger(0);
 
     public IoSupport(){
-
     }
 
     public void setFilter(IoHandler ... handlers){
         this.ioHandlers = handlers;
     }
 
-    public void registerConnection(NServerConnection connection){
+    public void registerConnection(IoConnection connection){
         Integer id = next_Id.incrementAndGet();
         connectionMap.put(id,connection);
     }

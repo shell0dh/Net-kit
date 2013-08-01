@@ -28,8 +28,12 @@ public class NioEventLoop {
     private IoWorker worker;
 
 
-    public NioEventLoop(String name, int index) throws IOException {
-        this.selector = Selector.open();
+    public NioEventLoop(String name, int index){
+        try{
+            this.selector = Selector.open();
+        }catch (IOException e){
+            LOG.error("can't open selector."+e.getMessage());
+        }
         worker = new IoWorker(name, index);
         worker.start();
     }
@@ -105,6 +109,10 @@ public class NioEventLoop {
         queue.add(e);
         wakeup();
     }
+
+    public void unregister(SelectionKey key){
+    }
+
 
 
 }
