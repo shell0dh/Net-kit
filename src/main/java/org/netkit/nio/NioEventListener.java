@@ -1,6 +1,7 @@
 package org.netkit.nio;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
   * User: shell0dh
@@ -8,5 +9,5 @@ import java.io.IOException;
  * Time: 上午12:56
   */
 public interface NioEventListener {
-    void ioReady(boolean read,boolean write,boolean accept,boolean connect)throws IOException;
+    void ioReady(boolean read,boolean write,boolean accept,boolean connect,ByteBuffer byteBuffer)throws IOException;
 }

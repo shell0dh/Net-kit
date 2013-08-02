@@ -3,6 +3,8 @@ package org.netkit.nio;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Date: 13-7-30
  * Time: 下午10:18
@@ -13,7 +15,7 @@ public class NioSelectPool {
 
     private NioEventLoop[] pool;
 
-    private int currentloop = -1;
+    private AtomicInteger currentloop = new AtomicInteger(0);
     private int size;
 
     public NioSelectPool(String poolname,int s){
@@ -29,7 +31,7 @@ public class NioSelectPool {
     }
 
     public NioEventLoop getNextLoop(){
-        return pool[(currentloop++)% size];
+        return pool[(currentloop.getAndIncrement())% size];
     }
 
 

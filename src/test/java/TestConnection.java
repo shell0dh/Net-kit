@@ -4,7 +4,8 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -13,14 +14,26 @@ import java.net.Socket;
   */
 public class TestConnection {
     public static void main(String[] strings)throws Exception{
-        Socket socket = new Socket("localhost",12345);
-        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        PrintWriter out = new PrintWriter(socket.getOutputStream());
-        out.println("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz");
-        out.flush();
-        System.out.println("readline start");
-        System.out.println(in.readLine());
-        System.out.println("readline end");
-        socket.close();
+        List<PrintWriter> outs = new ArrayList<PrintWriter>();
+        List<BufferedReader> ins = new ArrayList<BufferedReader>();
+        for(int i = 0 ;i < 1000; i++){
+            Socket socket = new Socket("localhost",12345);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            ins.add(in);
+            PrintWriter out = new PrintWriter(socket.getOutputStream());
+            outs.add(out);
+        }
+        int w = 0;
+        for(;;){
+            w++;
+            for(PrintWriter p : outs){
+                p.write(w);
+                p.flush();
+            }
+
+            for(BufferedReader b: ins){
+                System.out.println(b.readLine());
+            }
+        }
     }
 }
