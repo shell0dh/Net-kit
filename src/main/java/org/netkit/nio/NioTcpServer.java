@@ -89,6 +89,7 @@ public class NioTcpServer implements NioEventListener{
                 }
             }
         }.start();
+        Thread.sleep(10000);
         server.stop();
     }
 }
