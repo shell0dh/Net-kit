@@ -1,5 +1,8 @@
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -13,7 +16,10 @@ import java.util.List;
  * Time: 下午6:11
   */
 public class TestConnection {
+    private static final Logger LOG = LoggerFactory.getLogger(TestConnection.class);
+
     public static void main(String[] strings)throws Exception{
+        LOG.info("zze");
         List<PrintWriter> outs = new ArrayList<PrintWriter>();
         List<BufferedReader> ins = new ArrayList<BufferedReader>();
         for(int i = 0 ;i < 1000; i++){

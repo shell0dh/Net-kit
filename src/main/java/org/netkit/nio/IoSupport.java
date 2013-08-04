@@ -17,6 +17,8 @@ public class IoSupport {
 
     private Executor executor;
 
+    private IoConfig config;
+
     private Map<Integer,IoConnection> connectionMap = new ConcurrentHashMap<Integer, IoConnection>();
 
     private AtomicInteger next_Id = new AtomicInteger(0);
@@ -25,9 +27,10 @@ public class IoSupport {
         return executor;
     }
 
-    public IoSupport(IoHandler handler,Executor e){
+    public IoSupport(IoHandler handler,Executor e,IoConfig c){
         this.executor = e;
         this.ioHandler = handler;
+        this.config = c;
     }
 
     public void setFilter(IoFilter ... s){

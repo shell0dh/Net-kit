@@ -27,7 +27,7 @@ public class NioSelectPool {
     }
 
     public NioSelectPool(String poolname){
-        this(poolname,Runtime.getRuntime().availableProcessors());
+        this(poolname,Runtime.getRuntime().availableProcessors()+1);
     }
 
     public NioEventLoop getNextLoop(){
@@ -35,13 +35,10 @@ public class NioSelectPool {
     }
 
 
-    public void startup(){
-        for(NioEventLoop e : pool){
-        }
-
-    }
 
     public void shutdown(){
-        for(NioEventLoop e : pool);
+        for(NioEventLoop e : pool){
+            e.shutdown();
+        }
     }
 }

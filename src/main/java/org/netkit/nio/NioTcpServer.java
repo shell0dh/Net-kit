@@ -10,13 +10,12 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * Date: 13-5-25
  * Time: 下午2:13
  */
-public class NioTcpServer implements NioEventListener{
+public class NioTcpServer implements TcpServer, NioEventListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(NioTcpServer.class);
 
@@ -26,70 +25,98 @@ public class NioTcpServer implements NioEventListener{
 
     private IoSupport support;
 
-    private CountDownLatch serverAwait = new CountDownLatch(1);
-
-    public NioTcpServer(IoSupport s){
+    public NioTcpServer(IoSupport s) {
         this.support = s;
-        this.acceptEventLoop = new NioEventLoop("AcceptEventLoop",0);
+        this.acceptEventLoop = new NioEventLoop("AcceptEventLoop", 0);
         this.selectPool = new NioSelectPool("IoEventLoop");
     }
 
-    public void start()throws Exception{
-        if(LOG.isInfoEnabled())
-            LOG.info("starting NioTcpServer....");
-        serverAwait.await();
-    }
-
-    public void stop(){
-        if(LOG.isInfoEnabled())
-            LOG.info("stoping NioTcpServer....");
-        serverAwait.countDown();
-    }
-
-    public void bind(int port)throws Exception{
-        if(LOG.isInfoEnabled())
-            LOG.info("bind server "+serverSocketChannel.getLocalAddress()+":"+port);
+    public void bind(int port) throws IOException{
         serverSocketChannel = ServerSocketChannel.open();
         SocketAddress address = new InetSocketAddress(port);
         serverSocketChannel.socket().bind(address);
         serverSocketChannel.configureBlocking(false);
         acceptEventLoop.register(new IoEvent(SelectionKey.OP_ACCEPT, this, serverSocketChannel, null));
+        if (LOG.isInfoEnabled())
+            LOG.info("bind server " + serverSocketChannel.getLocalAddress() + ":" + port);
     }
 
-    private void accept()throws IOException{
+    private void accept() throws IOException {
         SocketChannel socketChannel = serverSocketChannel.accept();
         NioEventLoop eventLoop = selectPool.getNextLoop();
-        IoEvent event = new IoEvent(SelectionKey.OP_READ,buildIoConnection(socketChannel,eventLoop),socketChannel,null);
+        final IoConnection connection = buildIoConnection(socketChannel,eventLoop);
+        IoEvent event = new IoEvent(SelectionKey.OP_READ,connection, socketChannel,new RegCallback<SelectionKey>() {
+            @Override
+            public void done(SelectionKey key) {
+                connection.setSelectionKey(key);
+                connection.processConnectionOpen();
+            }
+        });
         eventLoop.register(event);
     }
 
-    private IoConnection buildIoConnection(SocketChannel socketChannel,NioEventLoop e)throws IOException{
-        return new IoConnection(socketChannel,support,e);
+    private IoConnection buildIoConnection(SocketChannel socketChannel, NioEventLoop e) throws IOException {
+        return new IoConnection(socketChannel, support, e);
     }
 
     @Override
-    public void ioReady(boolean igRead, boolean igWrite, boolean isAccept, boolean igConnect,ByteBuffer ig) throws IOException {
-        if(isAccept){
+    public void ioReady(boolean igRead, boolean igWrite, boolean isAccept, boolean igConnect, ByteBuffer ig) throws IOException {
+        if (isAccept) {
             accept();
         }
     }
 
-    public static void main(String[] string)throws Exception{
-        LOG.info("Test runing.");
-        IoSupport support = new IoSupport();
+    public static void main(String[] string) throws Exception {
+        IoConfig config = new IoConfig() {
+            @Override
+            public Integer getReadBufferSize() {
+                return null;
+            }
+
+            @Override
+            public void setReadBufferSize(Integer size) {
+            }
+
+            @Override
+            public void setReuseAddress(boolean reuseAddress) {
+            }
+
+            @Override
+            public Boolean isReuseAddress() {
+                return true;
+            }
+
+            @Override
+            public Integer getTimeout() {
+                return 1000;
+            }
+
+            @Override
+            public void setTimeout(int timeOut) {
+            }
+        };
+
+        IoSupport support = new IoSupport(new IoHandler() {
+            @Override
+            public void connctionOpen(IoConnection connection) {
+                System.out.println("connection open..");
+                ByteBuffer message = ByteBuffer.wrap("hello world !".getBytes());
+                connection.write(message);
+            }
+
+            @Override
+            public void messageReceived(IoConnection connection, Object message) {
+                System.out.println("connection received message : "+message);
+                connection.write(message);
+            }
+
+            @Override
+            public void exceptionCaught(IoConnection connection, Exception e) {
+                System.out.println("connection Exception : "+e.getMessage());
+            }
+        }, null,config);
         final NioTcpServer server = new NioTcpServer(support);
         server.bind(12345);
-        System.out.println("server..start");
-        new Thread(){
-            @Override
-            public void run() {
-                try {
-                    server.start();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }.start();
-        server.stop();
+
     }
 }

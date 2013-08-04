@@ -71,7 +71,7 @@ public class NioEventLoop {
                                 LOG.error("key is not attachment.");
                             }else{
                                 NioEventListener listener = (NioEventListener)att;
-                                listener.ioReady(key.isReadable(),key.isWritable(),key.isAcceptable(),key.isConnectable());
+                                listener.ioReady(key.isReadable(),key.isWritable(),key.isAcceptable(),key.isConnectable(),bufferCache);
                             }
                         }
                     }
@@ -99,9 +99,9 @@ public class NioEventLoop {
     public void processEvent(Selector sel) throws ClosedChannelException {
         while (!queue.isEmpty()) {
             IoEvent e = queue.poll();
-            e.ch().register(sel, e.Ops(), e.getListener());
+            SelectionKey key = e.ch().register(sel, e.Ops(), e.getListener());
             if(e.cb() != null){
-                //todo;callback  handler
+                e.cb().done(key);
             }
         }
     }
@@ -110,6 +110,23 @@ public class NioEventLoop {
 
     public void register(IoEvent e) {
         queue.add(e);
+        int ops = 0;
+
+        if (accept) {
+            ops |= SelectionKey.OP_ACCEPT;
+        }
+
+        if (connect) {
+            ops |= SelectionKey.OP_CONNECT;
+        }
+
+        if (read) {
+            ops |= SelectionKey.OP_READ;
+        }
+
+        if (write) {
+            ops |= SelectionKey.OP_WRITE;
+        }
         wakeup();
     }
 
