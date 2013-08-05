@@ -2,6 +2,7 @@ package org.netkit.nio;
 
 import java.io.IOException;
 import java.net.SocketAddress;
+import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 
 /**
@@ -14,41 +15,44 @@ public class NioTcpClient{
     private NioEventLoop connectEventLoop;
     private NioSelectPool selectPool;
 
-    public NioTcpClient(){
+    public NioTcpClient(IoSupport s){
+        this.support = s;
         this.connectEventLoop = new NioEventLoop("connectEventLoop",0);
         this.selectPool = new NioSelectPool("readWriteEventLoop",2);
     }
 
-    public NioTcpClient(NioSelectPool pool){
+    public NioTcpClient(NioSelectPool pool,IoSupport s){
+        this.support = s;
         this.connectEventLoop = pool.getNextLoop();
         this.selectPool = pool;
     }
 
-    public IoConnection connect(SocketAddress address){
+    public IoConnection connect(SocketAddress address)throws IOException{
         SocketChannel clientChanel = null;
-        try{
-            clientChanel = SocketChannel.open();
-            clientChanel.configureBlocking(false);
-        }catch (IOException e){
-            e.printStackTrace();
-        }
-
-        IoConnection connection = null;
-        try{
-            connection = new IoConnection(clientChanel,support,selectPool.getNextLoop());
-        }catch (IOException e){
-            e.printStackTrace();
-        }
-
-        boolean isConnect = false;
-        try{
-            isConnect = clientChanel.connect(address);
-        }catch (IOException e){
-            e.printStackTrace();
-        }
-
+        clientChanel = SocketChannel.open();
+        clientChanel.configureBlocking(false);
+        NioEventLoop readwriteEventLoop = selectPool.getNextLoop();
+        final IoConnection connection = new IoConnection(clientChanel,support,readwriteEventLoop);
+        boolean isConnect = clientChanel.connect(address);
         if(isConnect){
+            IoEvent e = new IoEvent(SelectionKey.OP_READ,connection,clientChanel,new RegCallback<SelectionKey>() {
+                @Override
+                public void done(SelectionKey key) {
+                    connection.setSelectionKey(key);
+                }
+            });
+
+            readwriteEventLoop.register(e);
+        }else{
+            IoEvent e = new IoEvent(SelectionKey.OP_CONNECT,connection,clientChanel,new RegCallback<SelectionKey>() {
+                @Override
+                public void done(SelectionKey key) {
+                    connection.setSelectionKey(key);
+                }
+            });
+            connectEventLoop.register(e);
+            connection.processConnectionOpen();
         }
-        return null;
+        return connection;
     }
 }
