@@ -1,6 +1,9 @@
 package org.netkit.nio;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
@@ -13,7 +16,10 @@ import java.util.concurrent.Executor;
    * Date: 13-5-30
  * Time: 下午4:12
   */
-public class IoConnection extends AbstractIoFilter implements NioEventListener{
+public class IoConnection implements NioEventListener{
+
+    private static final Logger LOG = LoggerFactory.getLogger(NioTcpServer.class);
+
 
     private SocketChannel socketChannel;
 
@@ -27,7 +33,7 @@ public class IoConnection extends AbstractIoFilter implements NioEventListener{
 
     private Queue<ByteBuffer> writeQueue = new LinkedList<ByteBuffer>();
 
-    public IoConnection(SocketChannel c,IoSupport s,NioEventLoop e)throws IOException{
+    public IoConnection(SocketChannel c, IoSupport s, NioEventLoop e)throws IOException{
         this.socketChannel = c;
         this.eventLoop = e;
         this.handler = s.getHandler();
@@ -44,18 +50,14 @@ public class IoConnection extends AbstractIoFilter implements NioEventListener{
     }
 
     public void processDirectWrite(ByteBuffer writeBuffer){
-        System.out.println("processDirectWrite..");
         try {
-            writeBuffer.flip();
-            socketChannel.write(writeBuffer);
-        } catch (IOException e) {
+            int size = socketChannel.write(writeBuffer);
+//            LOG.info("write size:"+size);
+        } catch (Exception e) {
             e.printStackTrace();
+            LOG.error(e.getMessage());
+            processException(e);
         }
-        System.out.println("proessDirectWrite..end");
-    }
-
-    public void syncWrite(ByteBuffer byteBuffer){
-        writeQueue.add(byteBuffer);
     }
 
     public void processWrite()throws IOException{
@@ -67,30 +69,57 @@ public class IoConnection extends AbstractIoFilter implements NioEventListener{
     }
 
     public void close(){
+        //LOG.info("close Connection");
         eventLoop.unregister(this,socketChannel);
-    }
-
-    public void messageReceived(ByteBuffer readbuffer){
-        System.out.println(new String(readbuffer.array()));
-        processDirectWrite(readbuffer);
-    }
-
-    public void processRead(ByteBuffer tbuf){
-        try {
-            int readByteCount = socketChannel.read(tbuf);
-            if(readByteCount < 0){
-               // processClose();
-            }else if(readByteCount > 0){
-                messageReceived(tbuf);
-            }
-        } catch (IOException e) {
+        try{
+            socketChannel.close();
+        }catch (IOException e){
             e.printStackTrace();
-            close();
+            processException(e);
         }
     }
 
+    public void messageReceived(ByteBuffer readbuffer){
+//        LOG.debug("messageReceived readbuffer :"+readbuffer);
+        handler.messageReceived(this,readbuffer);
+    }
+
+
+    public void processException(Exception t){
+//        LOG.debug("processException:"+t.getMessage());
+        handler.exceptionCaught(this,t);
+    }
+
+    public void processConnectionOpen(){
+//        LOG.info("processConnectionOpen....");
+        handler.connctionOpen(this);
+    }
+
+    public void processRead(final ByteBuffer tbuf){
+        try {
+            final int readByteCount = socketChannel.read(tbuf);
+            if(readByteCount > 0){
+//                LOG.info("read = "+tbuf.remaining());
+                tbuf.flip();
+//                LOG.info("read1 = "+tbuf.remaining());
+                messageReceived(tbuf);
+                tbuf.clear();
+            }else if(readByteCount < 0){
+               // LOG.info("process read close channel.");
+                close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            processException(e);
+        }
+    }
+
+
     @Override
-    public void ioReady(boolean isReadable, boolean isWriteable, boolean ig, boolean connect,ByteBuffer byteBuffer) throws IOException {
+    public void ioReady(boolean isReadable, boolean isWriteable, boolean ig, boolean connect,final ByteBuffer byteBuffer) throws IOException {
+        if(LOG.isInfoEnabled()){
+           // LOG.info("{ isReadable="+isReadable+",isWriteable="+isWriteable+",isAcceptable="+ig+",connect="+connect+",readBuffer="+byteBuffer+"}");
+        }
         if(isReadable){
             processRead(byteBuffer);
         }
@@ -98,41 +127,19 @@ public class IoConnection extends AbstractIoFilter implements NioEventListener{
             processWrite();
         }
         if(connect){
-
+            boolean isConnect = socketChannel.finishConnect();
+            if(!isConnect){
+                processException(new Exception("not connect.."));
+            }else{
+            }
         }
     }
 
 
-    @Override
-    public void open(IoConnection ioConnect) {
-        System.out.println("first open Connection");
-    }
-
-    @Override
-    public void close(IoConnection ioConnect) {
-        close();
-    }
-
-    @Override
-    public void ioConnectIdle(IoConnection ioConnect, int status) {
-        System.out.println("status Idle");
-    }
-
-    @Override
-    public void messageReceived(IoConnection ioConnect) {
-    }
-
-    @Override
-    public void messageSent(IoConnection ioConnect) {
+    public void write(Object message){
+        LOG.info("write : "+message);
+        processDirectWrite((ByteBuffer)message);
     }
 
 
-    public void processMessageWriting(){
-    }
-
-
-    @Override
-    public void messageWriting(IoConnection ioConnect) {
-
-    }
 }

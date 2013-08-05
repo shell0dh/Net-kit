@@ -28,6 +28,8 @@ public class NioEventLoop {
 
     private IoWorker worker;
 
+    private volatile boolean runing = true;
+
 
     public NioEventLoop(String name, int index){
         try{
@@ -40,13 +42,12 @@ public class NioEventLoop {
     }
 
     public void shutdown() {
-        worker.workerStop();
+        runing = false;
         worker.interrupt();
     }
 
 
     public class IoWorker extends Thread {
-        private volatile boolean runing = true;
 
         public IoWorker(String prefix, int index) {
             super(prefix + "-" + index);
@@ -60,12 +61,13 @@ public class NioEventLoop {
             while (runing) {//fixme: I have good a idea. set thread daemon true and change "while(runing)" to "for(;;)"
                 try {
                     int ready = sel.select(500);
+                    if(LOG.isDebugEnabled()){
+                        LOG.debug("ready keys:"+ready);
+                    }
                     if (ready > 0) {
-                        Iterator<SelectionKey> selkeys = sel.selectedKeys().iterator();
+                        final Iterator<SelectionKey> selkeys = sel.selectedKeys().iterator();
                         while (selkeys.hasNext()) {
-                            SelectionKey key = null;
-                            key = selkeys.next();
-                            selkeys.remove();
+                            SelectionKey key = selkeys.next();
                             Object att = key.attachment();
                             if(att == null){
                                 LOG.error("key is not attachment.");
@@ -73,6 +75,7 @@ public class NioEventLoop {
                                 NioEventListener listener = (NioEventListener)att;
                                 listener.ioReady(key.isReadable(),key.isWritable(),key.isAcceptable(),key.isConnectable(),bufferCache);
                             }
+                            selkeys.remove();
                         }
                     }
                     processEvent(sel);
@@ -85,10 +88,6 @@ public class NioEventLoop {
             if (LOG.isDebugEnabled())
                 LOG.debug(getName() + " thread stop......");
         }
-
-        public void workerStop() {
-            runing = false;
-        }
     }
 
     public void wakeup() {
@@ -99,9 +98,9 @@ public class NioEventLoop {
     public void processEvent(Selector sel) throws ClosedChannelException {
         while (!queue.isEmpty()) {
             IoEvent e = queue.poll();
-            e.ch().register(sel, e.Ops(), e.getListener());
+            SelectionKey key = e.ch().register(sel, e.Ops(), e.getListener());
             if(e.cb() != null){
-                //todo;callback  handler
+                e.cb().done(key);
             }
         }
     }
@@ -110,11 +109,29 @@ public class NioEventLoop {
 
     public void register(IoEvent e) {
         queue.add(e);
+/*        int ops = 0;
+
+        if (accept) {
+            ops |= SelectionKey.OP_ACCEPT;
+        }
+
+        if (connect) {
+            ops |= SelectionKey.OP_CONNECT;
+        }
+
+        if (read) {
+            ops |= SelectionKey.OP_READ;
+        }
+
+        if (write) {
+            ops |= SelectionKey.OP_WRITE;
+        }
+        */
         wakeup();
     }
 
     public void unregister(final NioEventListener listener,final SelectableChannel ch){
-        System.out.println("listener unregister :"+listener);
+        //LOG.info("unregister listener : "+listener);
         final SelectionKey key = ch.keyFor(selector);
         key.cancel();
         key.attach(null);

@@ -11,10 +11,10 @@ public class IoEvent{
     private int ops;
     private SelectableChannel channel;
     private NioEventListener listener;
-    private Object callback;
+    private RegCallback callback;
 
 
-    public IoEvent(int o,NioEventListener a,SelectableChannel c,Object cb){
+    public IoEvent(int o,NioEventListener a,SelectableChannel c,RegCallback cb){
         this.ops = o;
         this.listener = a;
         this.channel = c;
@@ -29,7 +29,7 @@ public class IoEvent{
         return channel;
     }
 
-    public Object cb(){
+    public RegCallback cb(){
         return callback;
     }
 

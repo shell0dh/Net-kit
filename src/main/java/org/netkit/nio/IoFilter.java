@@ -8,7 +8,6 @@ package org.netkit.nio;
 public interface IoFilter {
     void open(IoConnection ioConnect);
     void close(IoConnection ioConnect);
-    void ioConnectIdle(IoConnection ioConnect,int status);
     void messageReceived(IoConnection ioConnect);
     void messageSent(IoConnection ioConnect);
     void messageWriting(IoConnection ioConnect);

@@ -18,11 +18,6 @@ public class AbstractIoFilter implements IoFilter{
     }
 
     @Override
-    public void ioConnectIdle(IoConnection ioConnect, int status) {
-
-    }
-
-    @Override
     public void messageReceived(IoConnection ioConnect) {
 
     }
@@ -34,6 +29,5 @@ public class AbstractIoFilter implements IoFilter{
 
     @Override
     public void messageWriting(IoConnection ioConnect) {
-
     }
 }

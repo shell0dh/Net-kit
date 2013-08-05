@@ -35,13 +35,10 @@ public class NioSelectPool {
     }
 
 
-    public void startup(){
-        for(NioEventLoop e : pool){
-        }
-
-    }
 
     public void shutdown(){
-        for(NioEventLoop e : pool);
+        for(NioEventLoop e : pool){
+            e.shutdown();
+        }
     }
 }
