@@ -98,6 +98,7 @@ public class IoConnection extends AbstractIoFilter implements NioEventListener{
             processWrite();
         }
         if(connect){
+
         }
     }
 

@@ -71,7 +71,7 @@ public class NioEventLoop {
                                 LOG.error("key is not attachment.");
                             }else{
                                 NioEventListener listener = (NioEventListener)att;
-                                listener.ioReady(key.isReadable(),key.isWritable(),key.isAcceptable(),key.isConnectable());
+                                listener.ioReady(key.isReadable(),key.isWritable(),key.isAcceptable(),key.isConnectable(),bufferCache);
                             }
                         }
                     }

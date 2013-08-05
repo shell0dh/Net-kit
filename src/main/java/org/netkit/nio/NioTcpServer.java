@@ -11,6 +11,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
 
 /**
  * Date: 13-5-25
@@ -76,7 +77,8 @@ public class NioTcpServer implements NioEventListener{
 
     public static void main(String[] string)throws Exception{
         LOG.info("Test runing.");
-        IoSupport support = new IoSupport();
+        IoSupport support = new IoSupport(new IoHandler() {
+        }, Executors.newCachedThreadPool());
         final NioTcpServer server = new NioTcpServer(support);
         server.bind(12345);
         System.out.println("server..start");
