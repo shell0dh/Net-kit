@@ -4,22 +4,16 @@ import org.netkit.nio.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.net.SocketAddress;
-import java.util.ArrayList;
-import java.util.List;
 
 
 /**
   * Date: 13-6-5
  * Time: 下午6:11
   */
-public class TestConnection2 {
-    private static final Logger LOG = LoggerFactory.getLogger(TestConnection2.class);
+public class TcpConnectionTest {
+    private static final Logger LOG = LoggerFactory.getLogger(TcpConnectionTest.class);
 
     public static void main(String[] strings)throws Exception{
         IoConfig config = new IoConfig() {
@@ -62,6 +56,7 @@ public class TestConnection2 {
             @Override
             public void messageReceived(IoConnection connection, Object message) {
                 LOG.info(message.toString());
+                connection.write(message);
             }
 
             @Override

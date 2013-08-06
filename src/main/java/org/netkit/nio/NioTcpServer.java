@@ -68,57 +68,5 @@ public class NioTcpServer implements TcpServer, NioEventListener {
         }
     }
 
-    public static void main(String[] string) throws Exception {
-        IoConfig config = new IoConfig() {
-            @Override
-            public Integer getReadBufferSize() {
-                return null;
-            }
 
-            @Override
-            public void setReadBufferSize(Integer size) {
-            }
-
-            @Override
-            public void setReuseAddress(boolean reuseAddress) {
-            }
-
-            @Override
-            public Boolean isReuseAddress() {
-                return true;
-            }
-
-
-            @Override
-            public Integer getTimeout() {
-                return 1000;
-            }
-
-            @Override
-            public void setTimeout(int timeOut) {
-            }
-        };
-
-        IoSupport support = new IoSupport(new IoHandler() {
-            @Override
-            public void connctionOpen(IoConnection connection) {
-                ByteBuffer message = ByteBuffer.wrap("hello world !\n".getBytes());
-                LOG.info("open message = "+message.remaining());
-                connection.write(message);
-            }
-
-            @Override
-            public void messageReceived(IoConnection connection, Object message) {
-                LOG.info("connection received message : "+new String(((ByteBuffer)message).array()));
-                connection.write(message);
-            }
-
-            @Override
-            public void exceptionCaught(IoConnection connection, Exception e) {
-                LOG.info("connection Exception : "+e.getMessage());
-            }
-        }, null,config);
-        final NioTcpServer server = new NioTcpServer(support);
-        server.bind(12345);
-    }
 }
