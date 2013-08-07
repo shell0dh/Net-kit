@@ -14,4 +14,7 @@ public interface AttributeContainer {
     <T> T setAttribute(AttributeKey<? extends T> key,T value);
 
     Set<AttributeKey<?>> getAttributekeys();
+
+    public <T> T getAttribute(AttributeKey<T> key, T defaultValue);
+
 }

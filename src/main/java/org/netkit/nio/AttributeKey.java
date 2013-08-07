@@ -16,6 +16,10 @@ public class AttributeKey<T> {
         hashCode =  createHashCode();
     }
 
+    public static <T> AttributeKey<T> createKey(Class<T> type,String name){
+        return new AttributeKey<T>(type,name);
+    }
+
     private int createHashCode(){
         final int prime = 31;
         int result = prime + this.attributeName.hashCode();

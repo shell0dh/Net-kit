@@ -27,6 +27,8 @@ public class IoConnection implements NioEventListener {
 
     private SelectionKey selkey;
 
+    private AttributeMap attributes = new AttributeMap();
+
     private Executor executor;
 
     private IoHandler handler;
