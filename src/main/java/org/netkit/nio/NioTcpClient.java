@@ -15,16 +15,17 @@ public class NioTcpClient{
     private NioEventLoop connectEventLoop;
     private NioSelectPool selectPool;
 
+    public NioTcpClient(NioEventLoop c,NioSelectPool pool,IoSupport s){
+        this.support = s;
+        this.connectEventLoop = c;
+        this.selectPool = pool;
+
+    }
+
     public NioTcpClient(IoSupport s){
         this.support = s;
         this.connectEventLoop = new NioEventLoop("connectEventLoop",0);
         this.selectPool = new NioSelectPool("readWriteEventLoop",2);
-    }
-
-    public NioTcpClient(NioSelectPool pool,IoSupport s){
-        this.support = s;
-        this.connectEventLoop = pool.getNextLoop();
-        this.selectPool = pool;
     }
 
     public IoConnection connect(SocketAddress address)throws IOException{

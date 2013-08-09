@@ -17,7 +17,7 @@ public class TimeTask {
 
     private final long TICK_TIME = 1000; //秒
 
-    private final int WHEELSIZE = 60*60;
+    private final int WHEELSIZE = 100;
 
     private final long MAX_IDLE_TIME_IN_MS = WHEELSIZE * 1000L;
 
@@ -54,15 +54,27 @@ public class TimeTask {
     }
 
     private int processIdleConnection(long nowTime){
-        long delta = lastCheckTime - nowTime;
+        long delta = nowTime - lastCheckTime;
         if(delta < TICK_TIME){
             LOG.info("not a second between the last checks,abort");
             return 0;
         }
 
+        int startIndex = (int)(lastCheckTime/1000L) % WHEELSIZE;
 
-        int startIndex = (lastCheckTime/1000L)%WHEELSIZE;
+        int startIndex2 = ((int)(Math.max(lastCheckTime,nowTime - (WHEELSIZE*1000L) + 1)/1000L)) % WHEELSIZE;
 
+        int endIndex = (int)(nowTime/1000L) % WHEELSIZE;
+
+        LOG.info("startIndex : {} endIndex : {} startIndex2:{}",startIndex,endIndex,startIndex2);
+
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        lastCheckTime = nowTime;
+        return -1;
     }
 
 
@@ -73,6 +85,19 @@ public class TimeTask {
 
         @Override
         public void run() {
+            while(runing){
+                try{
+                    sleep(TICK_TIME);
+                    processIdleConnection(System.currentTimeMillis());
+                }catch (Exception e){
+                    LOG.error("tickWorker", e.getMessage());
+                }
+            }
         }
+    }
+
+    public static void main(String[] s){
+        TimeTask tickWorker = new TimeTask();
+        tickWorker.start();
     }
 }
