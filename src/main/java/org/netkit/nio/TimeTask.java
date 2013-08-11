@@ -4,7 +4,9 @@ package org.netkit.nio;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -33,9 +35,12 @@ public class TimeTask {
 
     private final TickWorker worker = new TickWorker();
 
+    private final long idleTime = 5;
+
     private volatile boolean runing = true;
 
     public TimeTask(){
+        start();
     }
 
 
@@ -53,6 +58,40 @@ public class TimeTask {
         }
     }
 
+
+    private void processIndex(int index,int status){
+        final Set<IoConnection>[] ioConnectionSet = status == 0 ? readTrace : writeTrace;
+        Set<IoConnection> connections = ioConnectionSet[index];
+        if(connections != null){
+            for(IoConnection connection : connections){
+                connection.processIdle();
+            }
+        }
+        ioConnectionSet[index] = null;
+    }
+
+    public void processWriteIdle(IoConnection connection,long nowTime){
+        int index = (int)(nowTime/1000L)%WHEELSIZE;
+        index += idleTime;
+        if(writeTrace[index] == null){
+            writeTrace[index] = Collections.newSetFromMap(new ConcurrentHashMap<IoConnection, Boolean>());
+        }
+        connection.getAttributes().setAttribute(WRITE_IDLE_INDEX,index);
+        writeTrace[index].add(connection);
+    }
+
+
+    public void processReadIdle(IoConnection connection,long nowTime){
+        int index = (int)(nowTime/1000L)%WHEELSIZE;
+        index += idleTime;
+        if(readTrace[index] == null){
+            readTrace[index] = Collections.newSetFromMap(new ConcurrentHashMap<IoConnection, Boolean>());
+        }
+        connection.getAttributes().setAttribute(READ_IDLE_INDEX,index);
+        readTrace[index].add(connection);
+    }
+
+
     private int processIdleConnection(long nowTime){
         long delta = nowTime - lastCheckTime;
         if(delta < TICK_TIME){
@@ -62,17 +101,16 @@ public class TimeTask {
 
         int startIndex = (int)(lastCheckTime/1000L) % WHEELSIZE;
 
-        int startIndex2 = ((int)(Math.max(lastCheckTime,nowTime - (WHEELSIZE*1000L) + 1)/1000L)) % WHEELSIZE;
-
         int endIndex = (int)(nowTime/1000L) % WHEELSIZE;
 
-        LOG.info("startIndex : {} endIndex : {} startIndex2:{}",startIndex,endIndex,startIndex2);
+        LOG.info("startIndex : {} endIndex : {}",startIndex,endIndex);
 
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        do{
+            processIndex(startIndex,0);
+            processIndex(startIndex,1);
+            startIndex++;
+        }while(startIndex == endIndex);
+
         lastCheckTime = nowTime;
         return -1;
     }

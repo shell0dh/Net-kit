@@ -19,18 +19,27 @@ public class IoSupport {
 
     private IoConfig config;
 
+    private TimeTask task;
+
     private Map<Integer,IoConnection> connectionMap = new ConcurrentHashMap<Integer, IoConnection>();
 
     private AtomicInteger next_Id = new AtomicInteger(0);
+
+
+    public TimeTask getIdleWorker(){
+        return task;
+    }
+
 
     public Executor getExecutor(){
         return executor;
     }
 
-    public IoSupport(IoHandler handler,Executor e,IoConfig c){
+    public IoSupport(IoHandler handler,Executor e,IoConfig c,TimeTask t){
         this.executor = e;
         this.ioHandler = handler;
         this.config = c;
+        this.task =t;
     }
 
     public void setFilter(IoFilter ... s){

@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.nio.ByteBuffer;
 
 
 /**
@@ -56,14 +57,27 @@ public class TcpConnectionTest {
             @Override
             public void messageReceived(IoConnection connection, Object message) {
                 LOG.info(message.toString());
-                connection.write(message);
+                //connection.write(message);
             }
 
             @Override
             public void exceptionCaught(IoConnection connection, Exception e) {
                 LOG.error(e.getMessage());
             }
-        },null,config);
+
+            @Override
+            public void connectionIdle(IoConnection connection) {
+                LOG.info("idle : {}",System.currentTimeMillis());
+                ByteBuffer me = ByteBuffer.allocate(1);
+                me.putInt(1);
+                try{
+                    connection.write(me);
+                }catch (Exception e){
+                    e.printStackTrace();
+                    connection.processException(e);
+                }
+            }
+        },null,config,new TimeTask());
         NioTcpClient client = new NioTcpClient(support);
         SocketAddress address = new InetSocketAddress(12345);
         client.connect(address);

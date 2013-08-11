@@ -33,6 +33,8 @@ public class IoConnection implements NioEventListener {
 
     private IoHandler handler;
 
+    private TimeTask idleWorker;
+
     private Queue<ByteBuffer> writeQueue = new LinkedList<ByteBuffer>();
 
     public IoConnection(SocketChannel c, IoSupport s, NioEventLoop e) throws IOException {
@@ -40,7 +42,12 @@ public class IoConnection implements NioEventListener {
         this.eventLoop = e;
         this.handler = s.getHandler();
         this.executor = s.getExecutor();
+        this.idleWorker = s.getIdleWorker();
         this.socketChannel.configureBlocking(false);
+    }
+
+    public AttributeMap getAttributes(){
+        return attributes;
     }
 
     public void setSelectionKey(SelectionKey key) {
@@ -55,11 +62,17 @@ public class IoConnection implements NioEventListener {
         try {
             int size = socketChannel.write(writeBuffer);
 //            LOG.info("write size:"+size);
+            idleWorker.processWriteIdle(this,System.currentTimeMillis());
         } catch (Exception e) {
             e.printStackTrace();
             LOG.error(e.getMessage());
             processException(e);
         }
+    }
+
+    public void processIdle(){
+        LOG.info("idle nowTime : {}",System.currentTimeMillis());
+        handler.connectionIdle(this);
     }
 
     public void processWrite() throws IOException {

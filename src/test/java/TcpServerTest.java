@@ -60,7 +60,12 @@ public class TcpServerTest {
             public void exceptionCaught(IoConnection connection, Exception e) {
                 LOG.error("connection Exception : "+e.getMessage());
             }
-        }, null,config);
+
+            @Override
+            public void connectionIdle(IoConnection connection) {
+                LOG.info("Idle : {}",System.currentTimeMillis());
+            }
+        }, null,config,new TimeTask());
         final NioTcpServer server = new NioTcpServer(support);
         server.bind(12345);
     }

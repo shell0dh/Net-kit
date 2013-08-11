@@ -47,11 +47,15 @@ public class NioTcpServer implements TcpServer, NioEventListener {
         SocketChannel socketChannel = serverSocketChannel.accept();
         NioEventLoop eventLoop = selectPool.getNextLoop();
         final IoConnection connection = buildIoConnection(socketChannel,eventLoop);
+        final TimeTask worker = support.getIdleWorker();
         IoEvent event = new IoEvent(SelectionKey.OP_READ,connection, socketChannel,new RegCallback<SelectionKey>() {
             @Override
             public void done(SelectionKey key) {
                 connection.setSelectionKey(key);
                 connection.processConnectionOpen();
+                long c = System.currentTimeMillis();
+                worker.processReadIdle(connection,c);
+                worker.processWriteIdle(connection,c);
             }
         });
         eventLoop.register(event);

@@ -11,4 +11,7 @@ public interface IoHandler {
     void messageReceived(IoConnection connection,Object message);
 
     void exceptionCaught(IoConnection connection,Exception e);
+
+    void connectionIdle(IoConnection connection);
+
 }
