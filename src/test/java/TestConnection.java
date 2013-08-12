@@ -10,6 +10,11 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
 
 /**
@@ -18,43 +23,76 @@ import java.util.List;
   */
 public class TestConnection {
     private static final Logger LOG = LoggerFactory.getLogger(TestConnection.class);
-
     public static void main(String[] strings)throws Exception{
-        final List<PrintWriter> outs = new ArrayList<PrintWriter>();
-        final List<BufferedReader> ins = new ArrayList<BufferedReader>();
-        List<Socket> sockets = new ArrayList<Socket>();
-        for(int i = 0 ;i < 10; i++){
-            Socket socket = new Socket("localhost",12345);
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            ins.add(in);
-            PrintWriter out = new PrintWriter(socket.getOutputStream());
-            outs.add(out);
-            sockets.add(socket);
+        final absFuture<Integer> future = new absFuture<Integer>();
+        new Thread(){
+            @Override
+            public void run() {
+                try{
+                    Thread.sleep(10000);
+                }catch (InterruptedException e){
+                }
+                future.setResult(1);
+            }
+        }.start();
+        LOG.info("future thread starting....");
+        LOG.info("future test result :{}",future.get());
+    }
+}
+
+class absFuture<V> implements Future<V>{
+    private final Sync sync = new Sync();
+    private V result;
+
+    private class Sync extends AbstractQueuedSynchronizer{
+        @Override
+        protected int tryAcquireShared(int ig) {
+            return (getState() == 1 ? 1 : -1);
         }
 
-        new Thread(){
-            @Override
-            public void run() {
-                for(PrintWriter p : outs){
-                    p.println("client send");
-                    p.flush();
-                }
-            }
-        }.start();
+        @Override
+        protected boolean tryReleaseShared(int ig) {
+            setState(1);
+            return true;
+        }
+    }
 
-        new Thread(){
-            @Override
-            public void run() {
-                while (true)
-                for(BufferedReader b : ins){
-                    try {
-                        System.out.println("server send :"+b.readLine());
-                    }catch (IOException e){
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }.start();
-        LOG.info("create socket connection done.");
+    private void signal(){
+        sync.releaseShared(0);
+    }
+
+    private void await()throws InterruptedException{
+        sync.acquireSharedInterruptibly(0);
+    }
+
+    public void setResult(V r){
+        this.result = r;
+        signal();
+    }
+
+    @Override
+    public boolean cancel(boolean mayInterruptIfRunning) {
+        return false;
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return false;
+    }
+
+    @Override
+    public boolean isDone() {
+        return false;
+    }
+
+    @Override
+    public V get() throws InterruptedException, ExecutionException {
+        await();
+        return result;
+    }
+
+    @Override
+    public V get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        return null;
     }
 }
